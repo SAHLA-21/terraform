@@ -1,0 +1,58 @@
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_s3_bucket" "sahla" {
+  bucket = "sahla-unique"
+
+  website {
+    index_document = "index.html"
+  }
+
+  tags = {
+    Name = "sahla-unique"
+  }
+}
+
+# Disable public access blocking
+resource "aws_s3_bucket_public_access_block" "sahla_block" {
+  bucket = aws_s3_bucket.sahla.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# Add "hello" as index.html content
+resource "aws_s3_bucket_object" "inline_index" {
+  bucket       = aws_s3_bucket.sahla.id
+  key          = "index.html"
+  content      = "<html><body>hello</body></html>"
+  content_type = "text/html"
+}
+
+# Allow public read access to all objects
+resource "aws_s3_bucket_policy" "public_access" {
+  bucket = aws_s3_bucket.sahla.id
+
+  depends_on = [aws_s3_bucket_public_access_block.sahla_block]
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid       = "PublicReadGetObject",
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "s3:GetObject",
+        Resource  = "${aws_s3_bucket.sahla.arn}/*"
+      }
+    ]
+  })
+}
+
+output "website_url" {
+  value = aws_s3_bucket.sahla.website_endpoint
+}
+

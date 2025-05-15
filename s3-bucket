@@ -1,0 +1,14 @@
+provider "aws" {
+  region = "ap-south-1"
+}
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "sahla-unique"
+  acl    = "private"  # Other options: public-read, public-read-write, etc.
+
+  tags = {
+    Name        = "mybucket"
+    Environment = "dev"
+  }
+}
+
