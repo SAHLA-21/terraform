@@ -1,0 +1,34 @@
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+resource "aws_ebs_volume" "example" {
+  availability_zone = "ap-south-1b"
+  size              = 10  # size in GiB
+  tags = {
+    Name = "MyEBS"
+  }
+}
+
+# Optional: create and attach to an EC2 instance
+resource "aws_instance" "example" {
+  ami           = "ami-0af9569868786b23a"  # Replace with valid AMI in your region
+  instance_type = "t2.micro"
+  availability_zone = "ap-south-1b"
+  key_name          = "lap"
+  
+   vpc_security_group_ids = ["sg-08575b43850ce3ad4"]
+
+
+  tags = {
+    Name = "TestInstance"
+  }
+}
+
+resource "aws_volume_attachment" "ebs_att" {
+  device_name = "/dev/sdh"  # EC2 Linux: /dev/xvdh
+  volume_id   = aws_ebs_volume.example.id
+  instance_id = aws_instance.example.id
+}
+
